@@ -205,4 +205,152 @@ ORDER BY S.Total_Sales DESC;
 
 
 
+-- Ques-13) Find RMs whose total loan portfolio is greater than average RM loan portfolio.
+WITH rm_loans AS (
+    SELECT
+        RM_ID,
+        SUM(Loan_Amount) AS total_loan
+    FROM Loan
+    GROUP BY RM_ID
+),
+avg_loan AS (
+    SELECT AVG(total_loan) AS avg_rm_loan
+    FROM rm_loans
+)
+SELECT
+    r.RM_ID,
+    r.total_loan
+FROM rm_loans r
+CROSS JOIN avg_loan a
+WHERE r.total_loan > a.avg_rm_loan;
+
+
+
+-- Ques-14) Find RMs who have achieved more than 80% of their target.
+WITH rm_target AS (
+    SELECT
+        RM_ID,
+        SUM(Target) AS total_target,
+        SUM(Achievement) AS total_achievement
+    FROM Target
+    GROUP BY RM_ID
+)
+SELECT
+    RM_ID,
+    total_target,
+    total_achievement,
+    ROUND(
+        total_achievement * 100.0 / total_target,
+        2
+    ) AS achievement_percentage
+FROM rm_target
+WHERE total_achievement * 100.0 / total_target > 80;
+
+
+
+-- Ques-15) Find branches whose total sales are greater than average branch sales.
+WITH branch_sales AS (
+    SELECT
+        rm.Branch,
+        SUM(s.Amount) AS total_sales
+    FROM Sales s
+    JOIN RM_Master rm
+        ON s.RM_ID = rm.RM_ID
+    GROUP BY rm.Branch
+),
+avg_branch_sales AS (
+    SELECT AVG(total_sales) AS avg_sales
+    FROM branch_sales
+)
+SELECT
+    b.Branch,
+    b.total_sales
+FROM branch_sales b
+CROSS JOIN avg_branch_sales a
+WHERE b.total_sales > a.avg_sales;
+
+
+
+-- Ques-16) Find the latest transaction of every customer.
+SELECT
+    Customer_ID,
+    Sale_Date,
+    Amount
+FROM (
+    SELECT
+        Customer_ID,
+        Sale_Date,
+        Amount,
+        ROW_NUMBER() OVER (
+            PARTITION BY Customer_ID
+            ORDER BY Sale_Date DESC
+        ) AS rn
+    FROM Sales
+) x
+WHERE rn = 1;
+
+
+
+-- Ques-17) Find the top 3 RMs in each branch.
+SELECT *
+FROM (
+    SELECT
+        rm.Branch,
+        s.RM_ID,
+        SUM(s.Amount) AS total_sales,
+        RANK() OVER (
+            PARTITION BY rm.Branch
+            ORDER BY SUM(s.Amount) DESC
+        ) AS rnk
+    FROM Sales s
+    JOIN RM_Master rm
+        ON s.RM_ID = rm.RM_ID
+    GROUP BY
+        rm.Branch,
+        s.RM_ID
+) x
+WHERE rnk <= 3;
+
+
+
+-- Ques-18) Find the second-highest RM in each branch.
+SELECT *
+FROM (
+    SELECT
+        rm.Branch,
+        s.RM_ID,
+        SUM(s.Amount) AS total_sales,
+        DENSE_RANK() OVER (
+            PARTITION BY rm.Branch
+            ORDER BY SUM(s.Amount) DESC
+        ) AS rnk
+    FROM Sales s
+    JOIN RM_Master rm
+        ON s.RM_ID = rm.RM_ID
+    GROUP BY
+        rm.Branch,
+        s.RM_ID
+) x
+WHERE rnk = 2;
+
+
+
+-- Ques-19) Calculate the difference between current and previous sales.
+SELECT
+    RM_ID,
+    Sale_Date,
+    Amount,
+    LAG(Amount) OVER (
+        PARTITION BY RM_ID
+        ORDER BY Sale_Date
+    ) AS previous_sales,
+    
+    Amount - LAG(Amount) OVER (
+        PARTITION BY RM_ID
+        ORDER BY Sale_Date
+    ) AS sales_difference
+
+FROM Sales;
+
+
 --------------------------------------------------------------------- END ---------------------------------------------------------------------------------------
