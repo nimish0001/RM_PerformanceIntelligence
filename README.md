@@ -372,9 +372,9 @@ Open `04_business_ques.sql` in MySQL Workbench and run each of the 19 queries.
 
 ## 👤 Author
 
-**Your Name**
-📧 your.email@example.com
-🔗 [LinkedIn](https://linkedin.com/in/your-profile) | [GitHub](https://github.com/your-username)
+**Nimish Jaiswal**
+📧 nimishjaiswal44@gmail.com
+🔗 [LinkedIn](https://www.linkedin.com/in/nimish-jaiswal0017/) | [GitHub](https://github.com/nimish0001)
 
 ---
 
